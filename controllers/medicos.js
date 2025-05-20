@@ -1,7 +1,9 @@
 const {response} = require('express');
 const Medico = require('../models/medicos');
 const Hospital = require('../models/hospital');
+const Usuario = require('../models/usuario');
 const { default: mongoose } = require('mongoose');
+const { validatorResponse } = require('../helpers/error-response');
 
 const getMedicos = async (req, res = response)=>{
 
@@ -66,30 +68,86 @@ const crearMedico = async (req, res = response)=>{
         
 }
 
-const actualizarMedico = (req, res = response)=>{
+const actualizarMedico = async (req, res = response)=>{
 
-    res.json({
-        ok:true,
-        msg:'Actualizar Medico'
-    })
+    const id = req.params.id;
+    const uid = req.uid;
+
+    try{
+        const medico = await Medico.findById(id);
+        if(!medico){
+            validatorResponse(400,'Medico no encontrado o no existente');
+        }
+        const usuario = await Usuario.findById(uid);
+
+        const cambiosMedico = {
+            ...req.body,
+            usuario: uid
+        }
+
+        const medicoActualizado = await Medico.findByIdAndUpdate(id,cambiosMedico,{new:true});
+
+        res.status(200).json({
+            ok:true,
+            msg:'Medico Actualizado',
+            medico: medicoActualizado,
+        })
+        
+    }catch(err){
+        console.log(err);
+        res.status(400).json({
+            ok:false,
+            msg:'Error al actualizar medico'
+        })
+    }
+
 
 }
 
-const borrarMedico = (req, res = response)=>{
+const borrarMedico = async (req, res = response)=>{
 
-    res.json({
-        ok:true,
-        msg:'Borrar Medico'
-    })
+    const id = req.params.id;
 
+    try{
+        const medico = await Medico.findById(id);
+        if(!medico){
+            validatorResponse(400,'Medico no encontrado o no existente');
+        }
+        await Medico.findByIdAndDelete(id);
+        res.status(200).json({
+            ok:true,
+            msg:'Medico eliminado con exito'
+        })
+        
+    }catch(err){
+      console.log(err)  
+        res.status(400).json({
+            ok:true,
+            msg:'Error al eliminar medico'
+        })
+    }
+    
 }
-const buscarMedicoPorId = (req, res = response)=>{
+const buscarMedicoPorId = async (req, res = response)=>{
+    const id = req.params.id;
+    try{
+        const medico = await Medico.findById(id);
+        if(!medico){
+            validatorResponse(400,'Medico no encontrado o no existente');
+        }
 
-    res.json({
-        ok:true,
-        msg:'Buscar Medico por Id'
-    })
-
+         res.status(200).json({
+            ok:true,
+            medico
+        })
+    
+    }catch(err){
+     console.log(err)  
+        res.status(400).json({
+            ok:true,
+            msg:'Error al eliminar medico'
+        })
+    }
 }
 
 module.exports = {

@@ -3,6 +3,7 @@ const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
 const { generarJWT } = require('../helpers/jwt');
 const { googleVerify } = require('../helpers/google-verify');
+const usuario = require('../models/usuario');
 
 
 
@@ -91,7 +92,20 @@ const googleSingIn = async (req, res= response) => {
 
 }
 
+const reviewToken = async (req, res= response)=>{
+    //Al pasar por el el middle de verificar token, ya tenemos el uid.
+    const uid = req.uid;
+
+    const token = await generarJWT(uid);
+
+    res.json({
+        ok:true,
+        token
+    })
+}
+
 module.exports = {
     login,
-    googleSingIn
+    googleSingIn,
+    reviewToken
 }
